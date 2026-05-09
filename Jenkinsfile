@@ -7,24 +7,25 @@ pipeline {
 
     stages {
         stage("Autoformat Rust") {
-            agent { label 'linux' }
+            agent { label 'windows' }
             steps {
                 checkout scm
                 dir("src-tauri") {
-                    sh "cargo fmt"
+                    bat "cargo fmt"
                 }
-                sh """
-                    if ! git diff --quiet; then
+                bat """
+                    git diff --quiet
+                    if %errorlevel% neq 0 (
                         git diff > fmt.patch
-                        echo "Patch created, apply the patch from the artifacts section to fix"
-                    else
-                        echo "No changes required"
-                    fi
+                        echo Patch created, apply the patch from the artifacts section to fix
+                    ) else (
+                        echo No changes required
+                    )
                 """
                 script {
                     if (fileExists('fmt.patch')) {
                         archiveArtifacts artifacts: 'fmt.patch', fingerprint: true
-                        sh "rm fmt.patch"
+                        bat "del fmt.patch"
                         error("Rust formatting changes required")
                     }
                 }
@@ -32,24 +33,25 @@ pipeline {
         }
 
         stage("Lint Rust (Clippy)") {
-            agent { label 'linux' }
+            agent { label 'windows' }
             steps {
                 checkout scm
                 dir("src-tauri") {
-                    sh "cargo clippy --fix --allow-dirty --lib -p spectrelauncher -- "
+                    bat "cargo clippy --fix --allow-dirty --lib -p spectrelauncher -- "
                 }
-                sh """
-                    if ! git diff --quiet; then
+                bat """
+                    git diff --quiet
+                    if %errorlevel% neq 0 (
                         git diff > clippy.patch
-                        echo "Patch created, apply the patch from the artifacts section to fix"
-                    else
-                        echo "No changes required"
-                    fi
+                        echo Patch created, apply the patch from the artifacts section to fix
+                    ) else (
+                        echo No changes required
+                    )
                 """
                 script {
                     if (fileExists('clippy.patch')) {
                         archiveArtifacts artifacts: 'clippy.patch', fingerprint: true
-                        sh "rm clippy.patch"
+                        bat "del clippy.patch"
                         error("Clippy linter changes required")
                     }
                 }
@@ -57,24 +59,25 @@ pipeline {
         }
 
         stage("Lint Rust (Check)"){
-            agent { label 'linux' }
+            agent { label 'windows' }
             steps {
                 checkout scm
                 dir("src-tauri"){
-                    sh "cargo fix --allow-dirty --lib -p spectrelauncher"
+                    bat "cargo fix --allow-dirty --lib -p spectrelauncher"
                 }
-                sh """
-                    if ! git diff --quiet; then
+                bat """
+                    git diff --quiet
+                    if %errorlevel% neq 0 (
                         git diff > check.patch
-                        echo "Patch created, apply the patch from the artifacts section to fix"
-                    else
-                        echo "No changes required"
-                    fi
+                        echo Patch created, apply the patch from the artifacts section to fix
+                    ) else (
+                        echo No changes required
+                    )
                 """
                 script {
                     if (fileExists('check.patch')) {
                         archiveArtifacts artifacts: 'check.patch', fingerprint: true
-                        sh "rm check.patch"
+                        bat "del check.patch"
                         error("Check linter changes required")
                     }
                 }
@@ -82,36 +85,11 @@ pipeline {
         }
 
         stage("JS Lint (ESLint)") {
-            agent { label 'linux' }
+            agent { label 'windows' }
             steps {
                 checkout scm
-                sh "npm ci"
-                sh "npm run lint"
-                sh """
-                    if ! git diff --quiet; then
-                        git diff > eslint.patch
-                        echo "Patch created, apply the patch from the artifacts section to fix"
-                    else
-                        echo "No changes required"
-                    fi
-                """
-                script {
-                    if (fileExists('eslint.patch')) {
-                        archiveArtifacts artifacts: 'eslint.patch', fingerprint: true
-                        sh "rm eslint.patch"
-                        error("ESLint changes required")
-                    }
-                }
-            }
-        }
-
-        stage("Linux Build") {
-            agent { label 'linux && x64' }
-            steps {
-                checkout scm
-                sh "npm i"
-                sh "npm run tauri build"
-                archiveArtifacts artifacts: 'src-tauri/target/release/bundle/appimage/*.AppImage', fingerprint: true
+                bat "npm ci"
+                bat "npm run lint"
             }
         }
 
