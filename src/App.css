@@ -1,0 +1,22 @@
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents double scrollbars in Tauri */
+}
+
+.page {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Ensure the wrapper also expands */
+.page-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto; /* Content scrolls, but sidebar stays fixed */
+}
