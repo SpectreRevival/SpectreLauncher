@@ -14,8 +14,11 @@
   "dependencies": {
     "@tabler/core": "^1.4.0",
     "@tabler/icons-react": "^3.44.0",
-    "@tauri-apps/api": "^2",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-shell": "^2.3.5",
+    "@tauri-apps/plugin-store": "^2.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.15.0"
