@@ -88,7 +88,7 @@ fn is_process_running(proc: &mut Child) -> bool {
 fn has_spectre_been_launched() -> bool {
     let mut processes = LAUNCHED_PROCESSES.lock().unwrap();
 
-    processes.retain_mut(|proc| is_process_running(proc));
+    processes.retain_mut(is_process_running);
 
     !processes.is_empty()
 }
