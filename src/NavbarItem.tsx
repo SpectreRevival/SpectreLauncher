@@ -1,4 +1,4 @@
-import {Link, useLocation} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export interface NavbarItemProps {
     to: string;
@@ -6,7 +6,7 @@ export interface NavbarItemProps {
     icon?: React.ReactNode;
 }
 
-export default function NavbarItem({to, label, icon}: NavbarItemProps){
+export default function NavbarItem({ to, label, icon }: NavbarItemProps) {
     const location = useLocation();
     const isActive = location.pathname === to;
 
@@ -15,7 +15,7 @@ export default function NavbarItem({to, label, icon}: NavbarItemProps){
             <Link className={"nav-link"} to={to}>
                 {icon ?
                     <span className={"nav-link-icon d-md-none d-lg-inline-block"}>{icon}</span>
-                : <></>
+                    : <></>
                 }
                 <span className={"nav-link-title"}>{label}</span>
             </Link>

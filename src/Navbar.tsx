@@ -1,5 +1,5 @@
 import NavbarItem from "./NavbarItem.tsx";
-import {IconDeviceGamepad, IconServerCog, IconSettings} from "@tabler/icons-react";
+import { IconDeviceGamepad, IconServerCog, IconSettings } from "@tabler/icons-react";
 export default function Navbar() {
 
     return (

@@ -1,6 +1,6 @@
-import {useEffect, useState} from "react";
-import {IconPlayerPlay} from "@tabler/icons-react";
-import {invoke} from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
+import { IconPlayerPlay } from "@tabler/icons-react";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function PlayPage() {
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -18,15 +18,17 @@ export default function PlayPage() {
         invoke("launch_spectre_divide");
     }
 
-    setTimeout(async () => {
-        setSpectreLaunched(await invoke<boolean>("has_spectre_been_launched"));
-    }, 10);
-
     useEffect(() => {
-        if (tryingToLaunch) {
-            setTryingToLaunch(false);
-        }
-    }, [spectreLaunched]);
+        const interval = setInterval(async () => {
+            const isRunning = await invoke<boolean>("has_spectre_been_launched");
+            setSpectreLaunched(isRunning);
+            if (isRunning && tryingToLaunch) {
+                setTryingToLaunch(false);
+            }
+        }, 10);
+
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (carouselImages.length === 0) return;
@@ -54,17 +56,17 @@ export default function PlayPage() {
             }}
         >
             {/* Overlay */}
-            <div className="position-absolute w-100 h-100 bg-dark" style={{top: 0, left: 0, opacity: 0.4, zIndex: 1}}/>
+            <div className="position-absolute w-100 h-100 bg-dark" style={{ top: 0, left: 0, opacity: 0.4, zIndex: 1 }} />
 
             {/* Play Button */}
             : <button className={`btn btn-primary btn-lg d-flex align-items-center gap-2 position-absolute ${spectreLaunched ? 'disabled' : ''}`}
-                      style={{bottom: "2rem", right: "2rem", zIndex: 2}} onClick={LaunchSpectre}>
-            {!tryingToLaunch
-                ? <IconPlayerPlay size={24}/>
-                : <div className="spinner-border text-white" role="status"></div>
-            }
-            <span>Play</span>
-        </button>
+                style={{ bottom: "2rem", right: "2rem", zIndex: 2 }} onClick={LaunchSpectre}>
+                {!tryingToLaunch
+                    ? <IconPlayerPlay size={24} />
+                    : <div className="spinner-border text-white" role="status"></div>
+                }
+                <span>Play</span>
+            </button>
         </div>
     );
 }

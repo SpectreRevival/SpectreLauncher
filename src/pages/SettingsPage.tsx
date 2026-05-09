@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react";
-import {IconAlertTriangle, IconCheck, IconEdit, IconX} from "@tabler/icons-react";
-import {open} from "@tauri-apps/plugin-dialog";
-import {LazyStore} from "@tauri-apps/plugin-store";
-import {invoke} from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
+import { IconAlertTriangle, IconCheck, IconEdit, IconX } from "@tabler/icons-react";
+import { open } from "@tauri-apps/plugin-dialog";
+import { LazyStore } from "@tauri-apps/plugin-store";
+import { invoke } from "@tauri-apps/api/core";
 
 interface Settings {
   binaryPath: string;
@@ -29,6 +29,7 @@ export default function SettingsPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaultSettings); // default values will be set by initial useEffect
+  const [editSettings, setEditSettings] = useState<Settings>(settings);
   useEffect(() => {
     async function initSettings() {
       const savedBinary = await store.get<string>("binaryPath");
@@ -39,9 +40,9 @@ export default function SettingsPage() {
         backendAddress: savedAddress ?? defaultSettings.backendAddress,
         backendPort: savedPort ?? defaultSettings.backendPort,
       };
-      if(loadedSettings.binaryPath == ""){
+      if (loadedSettings.binaryPath == "") {
         const discoveredPath = await invoke<string | null>("find_spectre_divide_path");
-        if(discoveredPath != null){
+        if (discoveredPath != null) {
           loadedSettings.binaryPath = discoveredPath;
         }
       }
@@ -54,7 +55,6 @@ export default function SettingsPage() {
     initSettings();
   }, []);
 
-  const [editSettings, setEditSettings] = useState<Settings>(settings);
 
   const handleEdit = () => {
     setEditSettings(settings);
@@ -77,7 +77,7 @@ export default function SettingsPage() {
     setEditSettings(defaultSettings);
   };
 
-  async function PickFile(){
+  async function PickFile() {
     const path = await open({
       multiple: false,
       filters: [
@@ -87,7 +87,7 @@ export default function SettingsPage() {
         }
       ]
     })
-    setEditSettings({...editSettings, binaryPath: path ? path : ""})
+    setEditSettings({ ...editSettings, binaryPath: path ? path : "" })
   }
 
   const handleInputChange = (key: keyof Settings, value: string | number) => {
