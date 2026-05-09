@@ -99,7 +99,7 @@ pipeline {
                 checkout scm
                 bat "npm i"
                 bat "npm run tauri build"
-                archiveArtifacts artifacts: 'src-tauri/target/release/bundle/nsis/*.exe', fingerprint: true
+                archiveArtifacts artifacts: 'src-tauri/target/release/bundle/**', fingerprint: true
             }
         }
     }
