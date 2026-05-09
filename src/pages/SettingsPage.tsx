@@ -75,6 +75,10 @@ export default function SettingsPage() {
 
   const ResetSettings = async () => {
     setEditSettings(defaultSettings);
+    const discoveredPath = await invoke<string | null>("find_spectre_divide_path");
+    if (discoveredPath != null) {
+      setEditSettings({...editSettings, binaryPath: discoveredPath});
+    }
   };
 
   async function PickFile() {
