@@ -2,7 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 use std::sync::{LazyLock, Mutex};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
+use tauri::path::BaseDirectory;
 use tauri_plugin_store::StoreBuilder;
 use winreg::enums::*;
 use winreg::RegKey;
@@ -140,6 +141,30 @@ async fn launch_spectre_divide(app: AppHandle) {
     LAUNCHED_PROCESSES.lock().unwrap().push(_proc.unwrap());
 }
 
+
+static SERVER_PROCESSES: LazyLock<Mutex<Vec<Child>>> = LazyLock::new(|| Mutex::new(Vec::new()));
+
+#[tauri::command]
+fn is_server_running() -> bool {
+    let mut processes = SERVER_PROCESSES.lock().unwrap();
+
+    processes.retain_mut(crate::is_process_running);
+
+    !processes.is_empty()
+}
+
+#[tauri::command]
+async fn launch_pragmabackend(app: AppHandle, game_port: i64, social_port: i64, websocket_port: i64) {
+    let server_exe_path = app.path()
+        .resolve("assets/pragmabackend/pragmabackend.exe", BaseDirectory::Resource).unwrap();
+    let _proc = Command::new(server_exe_path)
+        .arg(websocket_port.to_string())
+        .arg(social_port.to_string())
+        .arg(game_port.to_string())
+        .spawn();
+    SERVER_PROCESSES.lock().unwrap().push(_proc.unwrap());
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -150,7 +175,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             find_spectre_divide_path,
             launch_spectre_divide,
-            has_spectre_been_launched
+            has_spectre_been_launched,
+            launch_pragmabackend,
+            is_server_running
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
