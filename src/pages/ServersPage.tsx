@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {invoke} from "@tauri-apps/api/core";
 import {IconPlus, IconServerOff, IconX} from "@tabler/icons-react";
 import {listen, Event} from "@tauri-apps/api/event";
@@ -14,6 +14,7 @@ export default function ServersPage() {
     const [socialPort, setSocialPort] = useState<number>(0);
     const [websocketPort, setWebsocketPort] = useState<number>(0);
     const [serverLogs, setServerLogs] = useState<ServerLogLine[]>([]);
+    const [nextCommand, setNextCommand] = useState<string>("");
 
     useEffect(() => {
         setInterval(async () => {
@@ -61,6 +62,20 @@ export default function ServersPage() {
         setWebsocketPort(event.target.value);
     }
 
+    const HandleNextCommandChange = (event: any) => {
+        setNextCommand(event.target.value);
+    }
+
+    const HandleNextCommandKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if(event.key === "Enter"){
+            // Send the command
+            invoke("sendstdincommand", {
+                content: nextCommand + "\n"
+            });
+            setNextCommand("");
+        }
+    }
+
     function LaunchBackend() {
         invoke("launch_pragmabackend", {
             gamePort: Number(gamePort),
@@ -85,6 +100,7 @@ export default function ServersPage() {
     </div>
 ))}
                         </pre>
+                        <input type={"text"} className={"form-control"} onChange={HandleNextCommandChange} value={nextCommand} onKeyDown={HandleNextCommandKey}/>
                     </div>
                     <div className="card-footer">
                         <button type="button" className={"close me-auto btn-danger btn"} onClick={ShutdownServer}>
