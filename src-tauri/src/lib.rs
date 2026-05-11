@@ -1,4 +1,4 @@
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{LazyLock, Mutex};
@@ -229,6 +229,13 @@ fn shutdown_pragmabackend() {
     }
 }
 
+#[tauri::command]
+fn send_stdin(content: String){
+    for child in SERVER_PROCESSES.lock().unwrap().iter_mut() {
+        child.stdin.take().unwrap().write_all(content.as_bytes()).unwrap();
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -242,7 +249,8 @@ pub fn run() {
             has_spectre_been_launched,
             launch_pragmabackend,
             is_server_running,
-            shutdown_pragmabackend
+            shutdown_pragmabackend,
+            send_stdin
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
