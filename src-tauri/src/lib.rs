@@ -95,6 +95,20 @@ fn has_spectre_been_launched() -> bool {
     !processes.is_empty()
 }
 
+fn get_current_steam64() -> u64 {
+    // The base constant for SteamID64 conversion
+    const STEAM_64_BASE: u64 = 76_561_197_960_265_728;
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let steam_key = hkcu.open_subkey("Software\\Valve\\Steam\\ActiveProcess")?;
+    let active_user: u32 = steam_key.get_value("ActiveUser")?;
+    if active_user == 0 {
+        panic!("Steam not logged in");
+
+    } else {
+        return STEAM_64_BASE + active_user as u64;
+    }
+}
+
 #[tauri::command]
 async fn launch_spectre_divide(app: AppHandle) {
     let path = PathBuf::from("settingsStore.json");
@@ -134,7 +148,7 @@ async fn launch_spectre_divide(app: AppHandle) {
             backend_address, backend_port
         ))
         .arg("-PragmaEnvironment=live")
-        .env("STEAMID", "PlayerSTEAMID")
+        .env("STEAMID", get_current_steam64().to_string())
         .env("SteamGameId", SPECTRE_APP_ID)
         .env("SteamAppID", SPECTRE_APP_ID)
         .env("SteamOverlayGameId", SPECTRE_APP_ID)
