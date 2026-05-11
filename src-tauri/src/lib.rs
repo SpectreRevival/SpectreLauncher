@@ -230,9 +230,14 @@ fn shutdown_pragmabackend() {
 }
 
 #[tauri::command]
-fn send_stdin(content: String){
+fn send_stdin(content: String) {
     for child in SERVER_PROCESSES.lock().unwrap().iter_mut() {
-        child.stdin.take().unwrap().write_all(content.as_bytes()).unwrap();
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(content.as_bytes())
+            .unwrap();
     }
 }
 
