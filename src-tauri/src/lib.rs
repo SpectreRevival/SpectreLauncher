@@ -1,8 +1,8 @@
-use std::{fs, thread};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{LazyLock, Mutex};
+use std::{fs, thread};
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreBuilder;
@@ -185,7 +185,9 @@ async fn launch_pragmabackend(
         for line in reader.lines() {
             match line {
                 Ok(content) => {
-                    app_stdout.emit("new-stdout-content", content).expect("failed to send data to frontend");
+                    app_stdout
+                        .emit("new-stdout-content", content)
+                        .expect("failed to send data to frontend");
                 }
                 Err(e) => eprintln!("error reading line: {}", e),
             }
@@ -198,7 +200,9 @@ async fn launch_pragmabackend(
         for line in reader.lines() {
             match line {
                 Ok(content) => {
-                    app_stderr.emit("new-stderr-content", content).expect("failed to send data to frontend");
+                    app_stderr
+                        .emit("new-stderr-content", content)
+                        .expect("failed to send data to frontend");
                 }
                 Err(e) => eprintln!("error reading line: {}", e),
             }
@@ -215,7 +219,7 @@ fn shutdown_pragmabackend() {
         std::mem::take(&mut *lock)
     };
     for mut child in processes {
-        match child.kill(){
+        match child.kill() {
             Ok(_) => {
                 // wait until it fully exits
                 let _ = child.wait();
