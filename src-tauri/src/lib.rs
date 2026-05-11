@@ -99,12 +99,14 @@ fn get_current_steam64() -> u64 {
     // The base constant for SteamID64 conversion
     const STEAM_64_BASE: u64 = 76_561_197_960_265_728;
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let steam_key = hkcu.open_subkey("Software\\Valve\\Steam\\ActiveProcess").unwrap();
+    let steam_key = hkcu
+        .open_subkey("Software\\Valve\\Steam\\ActiveProcess")
+        .unwrap();
     let active_user: u32 = steam_key.get_value("ActiveUser").unwrap();
     if active_user == 0 {
         panic!("Steam not logged in");
     } else {
-        return STEAM_64_BASE + active_user as u64;
+        STEAM_64_BASE + active_user as u64
     }
 }
 
