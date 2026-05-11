@@ -96,13 +96,17 @@ pipeline {
         stage("Windows Build") {
             agent { label 'windows && x64' }
             steps {
-                checkout scm
-                bat "npm i"
-                bat """
-                    call "C:\\BuildTools\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
-                    npm run tauri build
-                """
-                archiveArtifacts artifacts: 'src-tauri/target/release/bundle/**', fingerprint: true
+                withCredentials([
+                    string(credentialsId: 'TAURI_SIGNING_PRIVATE_KEY', variable: 'TAURI_SIGNING_PRIVATE_KEY')
+                ]){
+                    checkout scm
+                    bat "npm i"
+                    bat """
+                        call "C:\\BuildTools\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
+                        npm run tauri build
+                    """
+                    archiveArtifacts artifacts: 'src-tauri/target/release/bundle/**', fingerprint: true
+                }
             }
         }
     }

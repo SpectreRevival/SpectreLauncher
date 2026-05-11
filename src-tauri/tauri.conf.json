@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "spectrelauncher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "spectrerevival.spectrelauncher",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -22,6 +22,7 @@
     }
   },
   "bundle": {
+    "publisher": "SpectreRevival",
     "active": true,
     "targets": "all",
     "icon": [
@@ -34,5 +35,15 @@
     "resources": [
       "assets/"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "active": false,
+      "endpoints": [
+        "https://spectrelauncher.ohmvir.dev/update/{{target}}/{{current_version}}"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU1QzY5OERGNTJEODQ1NUEKUldSYVJkaFMzNWpHNWNoNjJlTmM2anR5RkR1TCtYQ28yWnkzM0tjVE0wdE5IV0tCQURJRGhIcWQK"
+    }
   }
 }
