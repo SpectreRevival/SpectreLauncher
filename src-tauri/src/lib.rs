@@ -1,9 +1,10 @@
-use std::fs;
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::{LazyLock, Mutex};
+use std::{fs, thread};
 use tauri::path::BaseDirectory;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreBuilder;
 use winreg::enums::*;
 use winreg::RegKey;
@@ -147,7 +148,7 @@ static SERVER_PROCESSES: LazyLock<Mutex<Vec<Child>>> = LazyLock::new(|| Mutex::n
 fn is_server_running() -> bool {
     let mut processes = SERVER_PROCESSES.lock().unwrap();
 
-    processes.retain_mut(crate::is_process_running);
+    processes.retain_mut(is_process_running);
 
     !processes.is_empty()
 }
@@ -166,12 +167,78 @@ async fn launch_pragmabackend(
             BaseDirectory::Resource,
         )
         .unwrap();
-    let _proc = Command::new(server_exe_path)
+    let mut _proc = Command::new(server_exe_path)
         .arg(websocket_port.to_string())
         .arg(social_port.to_string())
         .arg(game_port.to_string())
-        .spawn();
-    SERVER_PROCESSES.lock().unwrap().push(_proc.unwrap());
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let stdout = _proc.stdout.take().expect("stdout is piped");
+    let stderr = _proc.stderr.take().expect("stderr is piped");
+
+    let app_stdout = app.clone();
+    thread::spawn(move || {
+        let reader = BufReader::new(stdout);
+        for line in reader.lines() {
+            match line {
+                Ok(content) => {
+                    app_stdout
+                        .emit("new-stdout-content", content)
+                        .expect("failed to send data to frontend");
+                }
+                Err(e) => eprintln!("error reading line: {}", e),
+            }
+        }
+    });
+
+    let app_stderr = app.clone();
+    thread::spawn(move || {
+        let reader = BufReader::new(stderr);
+        for line in reader.lines() {
+            match line {
+                Ok(content) => {
+                    app_stderr
+                        .emit("new-stderr-content", content)
+                        .expect("failed to send data to frontend");
+                }
+                Err(e) => eprintln!("error reading line: {}", e),
+            }
+        }
+    });
+
+    SERVER_PROCESSES.lock().unwrap().push(_proc);
+}
+
+#[tauri::command]
+fn shutdown_pragmabackend() {
+    let processes = {
+        let mut lock = SERVER_PROCESSES.lock().unwrap();
+        std::mem::take(&mut *lock)
+    };
+    for mut child in processes {
+        match child.kill() {
+            Ok(_) => {
+                // wait until it fully exits
+                let _ = child.wait();
+            }
+            Err(e) => eprintln!("error shutting down pragmabackend process: {}", e),
+        }
+    }
+}
+
+#[tauri::command]
+fn send_stdin(content: String) {
+    for child in SERVER_PROCESSES.lock().unwrap().iter_mut() {
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(content.as_bytes())
+            .unwrap();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -186,7 +253,9 @@ pub fn run() {
             launch_spectre_divide,
             has_spectre_been_launched,
             launch_pragmabackend,
-            is_server_running
+            is_server_running,
+            shutdown_pragmabackend,
+            send_stdin
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
