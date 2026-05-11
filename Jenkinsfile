@@ -98,9 +98,24 @@ pipeline {
             steps {
                 checkout scm
                 bat "npm i"
-                bat "npm run tauri build"
+                bat """
+                    call "C:\\BuildTools\\VC\\Auxiliary\\Build\\vcvarsall.bat" x64
+                    npm run tauri build
+                """
                 archiveArtifacts artifacts: 'src-tauri/target/release/bundle/**', fingerprint: true
             }
         }
     }
+
+    post {
+            always {
+                node('linux') {
+                    step([
+                        $class: 'GitHubCommitStatusSetter',
+                        contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'jenkins/build-status'],
+                        reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/SpectreRevival/spectrelauncher']
+                    ])
+                }
+            }
+        }
 }
