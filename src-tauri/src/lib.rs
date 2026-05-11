@@ -103,7 +103,6 @@ fn get_current_steam64() -> u64 {
     let active_user: u32 = steam_key.get_value("ActiveUser")?;
     if active_user == 0 {
         panic!("Steam not logged in");
-
     } else {
         return STEAM_64_BASE + active_user as u64;
     }
