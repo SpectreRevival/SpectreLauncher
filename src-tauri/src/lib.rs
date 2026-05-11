@@ -210,7 +210,7 @@ async fn launch_pragmabackend(
 
 #[tauri::command]
 fn shutdown_pragmabackend() {
-    let mut processes = {
+    let processes = {
         let mut lock = SERVER_PROCESSES.lock().unwrap();
         std::mem::take(&mut *lock)
     };
