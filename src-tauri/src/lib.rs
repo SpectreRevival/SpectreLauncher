@@ -2,8 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 use std::sync::{LazyLock, Mutex};
-use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
+use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreBuilder;
 use winreg::enums::*;
 use winreg::RegKey;
@@ -141,7 +141,6 @@ async fn launch_spectre_divide(app: AppHandle) {
     LAUNCHED_PROCESSES.lock().unwrap().push(_proc.unwrap());
 }
 
-
 static SERVER_PROCESSES: LazyLock<Mutex<Vec<Child>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
 #[tauri::command]
@@ -154,9 +153,19 @@ fn is_server_running() -> bool {
 }
 
 #[tauri::command]
-async fn launch_pragmabackend(app: AppHandle, game_port: i64, social_port: i64, websocket_port: i64) {
-    let server_exe_path = app.path()
-        .resolve("assets/pragmabackend/pragmabackend.exe", BaseDirectory::Resource).unwrap();
+async fn launch_pragmabackend(
+    app: AppHandle,
+    game_port: i64,
+    social_port: i64,
+    websocket_port: i64,
+) {
+    let server_exe_path = app
+        .path()
+        .resolve(
+            "assets/pragmabackend/pragmabackend.exe",
+            BaseDirectory::Resource,
+        )
+        .unwrap();
     let _proc = Command::new(server_exe_path)
         .arg(websocket_port.to_string())
         .arg(social_port.to_string())
